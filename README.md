@@ -83,12 +83,10 @@ the library is missing. Large jobs can be run in Colab with the
 
 ### Colab setup
 
-1. Add a GitHub access token with repository read access to Colab Secrets as
-   `GITHUB_TOKEN`; the notebook reads it at runtime and does not store it in
-   the Git remote URL.
+1. The repository is public, so the notebook clones it without a GitHub token.
 2. Put CIC-IDS2017 CSVs in `MyDrive/netshift-data/cicids2017/`.
-3. Add a Kaggle API token to Colab Secrets as `KAGGLE_API_TOKEN`. The notebook
-   downloads CSE-CIC-IDS2018 from Kaggle dataset
+3. The notebook downloads the public CSE-CIC-IDS2018 dataset without a Kaggle
+   token from
    [`solarmainframe/ids-intrusion-csv`](https://www.kaggle.com/datasets/solarmainframe/ids-intrusion-csv)
    and stages its CSV files in `data/raw/cse2018/`.
 4. Open the Colab badge above, select a runtime, and run the notebook cells in

@@ -7,6 +7,10 @@ results/results_log.csv
 __pycache__/
 *.pyc
 .pytest_cache/
+.ipynb_checkpoints/
+.ruff_cache/
+.mypy_cache/
+.coverage
 *.egg-info/
 # OS junk (macOS and Windows)
 .DS_Store

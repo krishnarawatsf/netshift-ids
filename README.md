@@ -45,7 +45,9 @@ run the experiments and inspect the saved evidence before drawing conclusions.
 | In-network baseline | `scripts/02_baseline.py` | `results/results_log.csv` |
 | Cross-network evaluation | `scripts/03_cross_network.py` | `results/results_log.csv` |
 | Shortcut feature analysis | `scripts/04_shap.py` | `results/feature_shift.csv`, `results/shortcut_features.json`, results log |
-| Target label-budget curve | `scripts/05_label_budget.py` | `results/results_log.csv` |
+| Random target label-budget curve | `scripts/05_label_budget.py` | `results/results_log.csv` |
+| Random vs. uncertainty selection | `scripts/07_active_labels.py` | `results/results_log.csv` |
+| Experiment summary | `scripts/06_report.py` | `results/tables.md` |
 
 Primary reported metrics are **macro-F1** and **MCC**; accuracy is secondary.
 The Streamlit dashboard reads saved results and does not train models.
@@ -70,6 +72,10 @@ data/raw/
 └── cse2018/*.csv
 ```
 
+The default cleaner processes all CSVs in bounded chunks and writes Parquet
+incrementally. `python scripts/01_clean.py cse2018 --sample` remains available
+for an in-memory stratified sample.
+
 Run the implemented pipeline:
 
 ```bash
@@ -93,10 +99,9 @@ the library is missing. Large jobs can be run in Colab with the
    order. Environment snapshots and run results are saved under
    `MyDrive/netshift-results/`.
 
-The launcher is orchestration only. The current repository does not yet
-contain `scripts/doctor.py`, `scripts/07_active_labels.py`, or
-`scripts/06_report.py`; the corresponding Colab steps stop with an explicit
-missing-script error until those project scripts are added.
+The launcher is orchestration only. It stops on any failed prerequisite or
+pipeline command and saves the commit ID, installed packages, and results for
+each run.
 
 ## Defensive data handling
 

@@ -1,0 +1,16 @@
+{
+  "rows_raw": 2830743,
+  "rows_after_label_mapping": 2671766,
+  "rows_dropped_nan_or_inf": 2741,
+  "rows_dropped_duplicates": 261786,
+  "n_features": 77,
+  "rows_final": 2407239,
+  "class_counts": {
+    "DDoS": 128014,
+    "Benign": 2072254,
+    "Bot": 1948,
+    "Web attack": 2143,
+    "Brute-force": 9150,
+    "DoS": 193730
+  }
+}

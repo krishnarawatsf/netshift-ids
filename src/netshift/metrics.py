@@ -5,7 +5,7 @@ import json
 import numpy as np
 from sklearn.metrics import accuracy_score, f1_score, matthews_corrcoef
 
-from netshift.config import CLASSES, RESULTS_LOG
+from netshift.config import CLASSES, MAJORITY_CAP, RESULTS_LOG, SMOTE_CAP
 
 
 def evaluate(y_true, y_pred) -> dict:
@@ -22,13 +22,24 @@ def evaluate(y_true, y_pred) -> dict:
 
 
 def log_result(row: dict) -> None:
-    """Append one row. Every row must have the same keys. Delete results_log.csv to reset."""
+    """Append a schema-consistent, cap-auditable row to the experiment log."""
     RESULTS_LOG.parent.mkdir(parents=True, exist_ok=True)
     row = dict(row)
+    row.setdefault("majority_cap", MAJORITY_CAP)
+    row.setdefault("smote_cap", SMOTE_CAP)
     row["per_class_f1"] = json.dumps(row["per_class_f1"])
     is_new = not RESULTS_LOG.exists()
+    fieldnames = list(row.keys())
+    if not is_new:
+        with RESULTS_LOG.open("r", newline="", encoding="utf-8") as existing:
+            existing_fieldnames = next(csv.reader(existing), None)
+        if existing_fieldnames != fieldnames:
+            raise ValueError(
+                f"Results log schema mismatch in {RESULTS_LOG}. "
+                "Archive or remove the old log before writing rows with the new schema."
+            )
     with RESULTS_LOG.open("a", newline="", encoding="utf-8") as f:
-        writer = csv.DictWriter(f, fieldnames=list(row.keys()))
+        writer = csv.DictWriter(f, fieldnames=fieldnames)
         if is_new:
             writer.writeheader()
         writer.writerow(row)

@@ -18,6 +18,8 @@ if not log.exists():
     st.stop()
 
 df = pd.read_csv(log)
+if "selection" not in df.columns:
+    df["selection"] = "none"
 tab1, tab2, tab3 = st.tabs(["Cross-network results", "Label budget", "Shortcut features"])
 
 with tab1:
@@ -27,13 +29,16 @@ with tab1:
     st.dataframe(summary)
 
 with tab2:
-    lb = df[df["experiment"] == "label_budget"]
+    lb = df[df["experiment"].isin(["label_budget", "label_budget_uncertainty"])]
     if lb.empty:
-        st.info("No label-budget results yet.")
+        st.info("No random or uncertainty label-budget results yet.")
     else:
         metric = st.selectbox("Metric", ["macro_f1", "mcc"])
-        st.line_chart(lb.groupby(["label_budget", "model"])[metric].mean().unstack())
-        st.dataframe(lb.groupby(["model", "feature_set", "label_budget"])
+        st.line_chart(
+            lb.groupby(["label_budget", "model", "selection"])[metric]
+            .mean().unstack(["model", "selection"])
+        )
+        st.dataframe(lb.groupby(["model", "selection", "feature_set", "label_budget"])
                      [["macro_f1", "mcc"]].agg(["mean", "std"]).round(4))
 
 with tab3:

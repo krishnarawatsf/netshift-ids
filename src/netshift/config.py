@@ -21,8 +21,10 @@ CSE_SAMPLE_FRAC = 0.05
 CSE_MIN_PER_CLASS = 2000
 
 # Balancing (training data only). Big classes are undersampled, small ones are SMOTE-d.
-MAJORITY_CAP = 200_000
-SMOTE_CAP = 50_000
+MAJORITY_CAP = int(os.environ.get("NETSHIFT_MAJORITY_CAP", "200000"))
+SMOTE_CAP = int(os.environ.get("NETSHIFT_SMOTE_CAP", "50000"))
+if MAJORITY_CAP < 1 or SMOTE_CAP < 2:
+    raise ValueError("NETSHIFT_MAJORITY_CAP must be >= 1 and NETSHIFT_SMOTE_CAP must be >= 2")
 
 # SHAP and shortcut detection
 SHAP_SAMPLE = 5000

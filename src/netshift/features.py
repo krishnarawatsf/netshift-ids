@@ -28,6 +28,13 @@ RENAME_CSE2018 = {
     "Bwd IAT Tot": "Bwd IAT Total",
     "Fwd Header Len": "Fwd Header Length",
     "Bwd Header Len": "Bwd Header Length",
+    "FIN Flag Cnt": "FIN Flag Count",
+    "SYN Flag Cnt": "SYN Flag Count",
+    "RST Flag Cnt": "RST Flag Count",
+    "PSH Flag Cnt": "PSH Flag Count",
+    "ACK Flag Cnt": "ACK Flag Count",
+    "URG Flag Cnt": "URG Flag Count",
+    "ECE Flag Cnt": "ECE Flag Count",
     "Fwd Pkts/s": "Fwd Packets/s",
     "Bwd Pkts/s": "Bwd Packets/s",
     "Pkt Len Min": "Min Packet Length",
@@ -55,6 +62,7 @@ RENAME_CSE2018 = {
 }
 
 _EXCLUDE = set(ID_COLUMNS) | {LABEL_COL, "label"}
+_DUPLICATE_COLUMN_ALIASES = {"Fwd Header Length.1": "Fwd Header Length"}
 
 
 def normalize_columns(df: pd.DataFrame) -> pd.DataFrame:
@@ -62,6 +70,14 @@ def normalize_columns(df: pd.DataFrame) -> pd.DataFrame:
     df = df.copy()
     df.columns = [str(c).strip() for c in df.columns]
     df = df.rename(columns=RENAME_CSE2018)
+    for duplicate, original in _DUPLICATE_COLUMN_ALIASES.items():
+        if duplicate not in df.columns:
+            continue
+        if original not in df.columns or not df[duplicate].equals(df[original]):
+            raise ValueError(
+                f"Known duplicate column {duplicate!r} does not match {original!r}"
+            )
+        df = df.drop(columns=duplicate)
     duplicated = df.columns[df.columns.duplicated()].unique().tolist()
     if duplicated:
         raise ValueError(f"Duplicate columns after header normalization: {duplicated}")

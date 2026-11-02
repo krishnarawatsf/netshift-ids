@@ -23,7 +23,8 @@ def main():
             m = evaluate(yte, pred)
             log_result({
                 "experiment": "baseline", "train_net": "cicids2017", "test_net": "cicids2017_holdout",
-                "model": name, "feature_set": "all", "label_budget": 0.0, "seed": seed,
+                "model": name, "selection": "none", "feature_set": "all",
+                "label_budget": 0.0, "seed": seed,
                 "n_train": len(ytr), "n_test": len(yte), "n_labelled_target": 0, **m,
             })
             print(f"[baseline] {name} seed={seed} macroF1={m['macro_f1']:.4f} MCC={m['mcc']:.4f}")

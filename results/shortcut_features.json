@@ -1,0 +1,8 @@
+{
+  "top_k": 15,
+  "ks_threshold": 0.3,
+  "features": [
+    "min_seg_size_forward",
+    "Fwd IAT Min"
+  ]
+}

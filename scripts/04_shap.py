@@ -77,7 +77,8 @@ def main():
             m = evaluate(yt, pred)
             log_result({
                 "experiment": "shortcut_removed", "train_net": "cicids2017", "test_net": "cse2018",
-                "model": name, "feature_set": "shortcut_removed", "label_budget": 0.0, "seed": seed,
+                "model": name, "selection": "none", "feature_set": "shortcut_removed",
+                "label_budget": 0.0, "seed": seed,
                 "n_train": len(ys), "n_test": len(yt), "n_labelled_target": 0, **m,
             })
             print(f"[shortcut-removed] {name} seed={seed} macroF1={m['macro_f1']:.4f} MCC={m['mcc']:.4f}")

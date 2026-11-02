@@ -1,68 +1,128 @@
-# NetShift-IDS
+<div align="center">
 
-Label-efficient cross-network intrusion detection. Validated on CIC-IDS2017 (train),
-CSE-CIC-IDS2018 (unseen-network test), and our own lab traffic (Network C).
+# `NETSHIFT // IDS`
 
-## Team
-- **Member A (Mac M3):** data, models, analysis. Owns `src/`, `scripts/`, `dashboard/`.
-- **Member B (Ubuntu):** lab, capture, Wazuh. Owns `lab/`. Output contract: `docs/MEMBER_B_CONTRACT.md`.
+### CROSS-NETWORK INTRUSION DETECTION
 
-## Setup (macOS Apple Silicon and Ubuntu 24.04 use the same steps)
+**Train on one network. Test the shift. Measure the label budget.**
 
-macOS:
+[![Open in Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/krishnarawatsf/netshift-ids/blob/main/notebooks/netshift_colab.ipynb)
+[![Python 3.11](https://img.shields.io/badge/Python-3.11-3776AB?logo=python&logoColor=white)](https://www.python.org/)
+[![Research project](https://img.shields.io/badge/Focus-defensive%20security-00A389)](#mission)
+[![Data stays out of Git](https://img.shields.io/badge/Data-never%20committed-222222)](#defensive-data-handling)
+
+</div>
+
+---
+
+## Mission
+
+NetShift-IDS is a research scaffold for **label-efficient intrusion detection
+under network shift**. It is designed to train on CIC-IDS2017 and evaluate on
+CSE-CIC-IDS2018, with a separate lab-network handoff described in
+[`docs/MEMBER_B_CONTRACT.md`](docs/MEMBER_B_CONTRACT.md).
+
+The workflow compares in-network and cross-network evaluation, investigates
+feature distribution shifts, and measures performance across target-label
+budgets. This repository does **not** claim validated real-data performance:
+run the experiments and inspect the saved evidence before drawing conclusions.
+
+## Research workflow
+
+```text
+  CIC-IDS2017 ── clean & map ──┬── stratified holdout ── baseline
+                               │
+                               └── train ────────────────┐
+                                                        ├── CSE-CIC-IDS2018
+  CSE-CIC-IDS2018 ── clean & align ─────────────────────┤   cross-network test
+                                                        ├── label-budget study
+                                                        └── SHAP / KS analysis
+```
+
+| Stage | Entry point | Evidence written |
+|---|---|---|
+| Clean and map dataset | `scripts/01_clean.py` | `data/clean/*.parquet`, `results/data_quality_*.json` |
+| In-network baseline | `scripts/02_baseline.py` | `results/results_log.csv` |
+| Cross-network evaluation | `scripts/03_cross_network.py` | `results/results_log.csv` |
+| Shortcut feature analysis | `scripts/04_shap.py` | `results/feature_shift.csv`, `results/shortcut_features.json`, results log |
+| Target label-budget curve | `scripts/05_label_budget.py` | `results/results_log.csv` |
+
+Primary reported metrics are **macro-F1** and **MCC**; accuracy is secondary.
+The Streamlit dashboard reads saved results and does not train models.
+
+## Run locally
+
+Python 3.11 is recommended on macOS and Ubuntu.
+
 ```bash
-brew install libomp          # only if xgboost reports a missing libomp
-python3.11 -m venv .venv && source .venv/bin/activate
-pip install -r requirements.txt
-pip install -e .
+python3.11 -m venv .venv
+source .venv/bin/activate
+python -m pip install -r requirements.txt
+python -m pip install -e .
 pytest -q
 ```
 
-Ubuntu:
-```bash
-sudo apt install python3.11 python3.11-venv
-python3.11 -m venv .venv && source .venv/bin/activate
-pip install -r requirements.txt
-pip install -e .
-pytest -q
+Place the dataset CSVs in these folders:
+
+```text
+data/raw/
+├── cicids2017/*.csv
+└── cse2018/*.csv
 ```
 
-## Data
-Download the datasets (free) and place the CSVs here:
-- `data/raw/cicids2017/*.csv`  (CIC-IDS2017, from unb.ca/cic/datasets/ids-2017)
-- `data/raw/cse2018/*.csv`     (CSE-CIC-IDS2018, from unb.ca/cic/datasets/ids-2018, a sample is fine)
+Run the implemented pipeline:
 
-Do not commit the data. The data folders are in .gitignore.
-
-## Run
 ```bash
 bash run_all.sh
 streamlit run dashboard/app.py
 ```
-Heavy steps (full CIC-IDS2017, repeated label-budget sweeps) can be run on Colab or Kaggle
-with the same code and the same `requirements.txt`.
 
-## Pipeline
-| Script | Step | Output |
-|---|---|---|
-| 01_clean.py | Clean, map labels, sample CSE-2018 | data/clean/*.parquet, results/data_quality_*.json |
-| 02_baseline.py | In-network baseline (Review I) | results_log.csv |
-| 03_cross_network.py | Train CIC, test CSE, no retrain (Review I) | results_log.csv |
-| 04_shap.py | Shortcut features, retrain without them (Review II) | feature_shift.csv, shortcut_features.json |
-| 05_label_budget.py | Label-budget curve (Review II, main novelty) | results_log.csv |
+On Apple Silicon, install `libomp` with Homebrew only if XGBoost reports that
+the library is missing. Large jobs can be run in Colab with the
+[launcher notebook](notebooks/netshift_colab.ipynb).
 
-## Compatibility checklist (Mac to Linux)
-- Python 3.11 on both machines, with pinned versions in requirements.txt.
-- All paths use pathlib. No backslashes, no hardcoded home directories.
-- LF line endings enforced by .gitattributes.
-- No macOS-only or Linux-only packages in requirements.txt.
-- results_log.csv is written with `newline=""`, so it is identical on both systems.
-- Commit `requirements.lock` after the first successful install on both machines.
+### Colab setup
 
-## Status
-- [ ] Verified on macOS (Member A)
-- [ ] Verified on Ubuntu (Member B)
-- [ ] Real data run (CIC-IDS2017, CSE-CIC-IDS2018): not yet run
-- [ ] Label mapping checked against downloaded files
-- [ ] RENAME_CSE2018 checked against downloaded files
-- [ ] Lab schema agreed (docs/MEMBER_B_CONTRACT.md)
+1. Add a GitHub access token with repository read access to Colab Secrets as
+   `GITHUB_TOKEN`; the notebook reads it at runtime and does not store it in
+   the Git remote URL.
+2. Put CIC-IDS2017 CSVs in `MyDrive/netshift-data/cicids2017/`.
+3. Add a Kaggle API token to Colab Secrets as `KAGGLE_API_TOKEN`. The notebook
+   downloads CSE-CIC-IDS2018 from Kaggle dataset
+   [`solarmainframe/ids-intrusion-csv`](https://www.kaggle.com/datasets/solarmainframe/ids-intrusion-csv)
+   and stages its CSV files in `data/raw/cse2018/`.
+4. Open the Colab badge above, select a runtime, and run the notebook cells in
+   order. Environment snapshots and run results are saved under
+   `MyDrive/netshift-results/`.
+
+The launcher is orchestration only. The current repository does not yet
+contain `scripts/doctor.py`, `scripts/07_active_labels.py`, or
+`scripts/06_report.py`; the corresponding Colab steps stop with an explicit
+missing-script error until those project scripts are added.
+
+## Defensive data handling
+
+- Use only authorized datasets and lab systems.
+- Keep raw CSVs, cleaned datasets, and experiment outputs out of Git.
+- For Network C, follow the private-VM scope in the
+  [Member B contract](docs/MEMBER_B_CONTRACT.md); do not direct test traffic at
+  systems you do not own or have permission to assess.
+
+## Project map
+
+```text
+src/netshift/       Shared cleaning, feature, model, label, and metric code
+scripts/            Thin experiment entry points
+tests/              Pytest coverage
+dashboard/          Read-only results dashboard
+data/               Local datasets and cleaned data (not committed)
+results/            Local experiment evidence (not committed)
+lab/                Network C handoff area
+notebooks/          Google Colab launcher
+```
+
+## Current validation status
+
+The real-data run and macOS/Ubuntu parity checks are not yet recorded. Consult
+[`docs/AUDIT.md`](docs/AUDIT.md) for the available test evidence, unmeasured
+results, and outstanding methodology and handoff items.
